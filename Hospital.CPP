@@ -1,0 +1,1014 @@
+
+#include<fstream.h>
+#include<conio.h>
+#include<stdio.h>
+#include<process.h>
+#include<string.h>
+#include<dos.h>
+#include<stdlib.h>
+char ch;
+class patient
+{
+ char admno[20];
+ char name[30];
+ char blood[10];
+ char place[30];
+ char gender[20];
+ int age;
+ public:
+ void PEgetdata()
+ {
+  cout<<"\nEnter patient ID: ";
+  gets(admno);
+  cout<<"\nEnter name of patient: ";
+  gets(name);
+  cout<<"\nEnter blood group: ";
+  gets(blood);
+  cout<<"\nEnter place: ";
+  gets(place);
+  cout<<"\nEnter gender: ";
+  gets(gender);
+  cout<<"\nEnter age: ";
+  cin>>age;
+ }
+ void PEdisplay()		  //search patient
+ {
+  cout<<"\n\t\t>>>>>> PATIENT'S PERSONAL DETAILS <<<<<<\n";
+  cout<<"\nAdmission number : "<<admno<<'\n'<<"Name : "<<name<<"\nBlood group : "<<blood<<"\nGender : "<<gender<<"\nplace : "<<place<<"\nAge : "<<age;
+ }
+ void PEviewall()                 //view all patients
+ {
+  cout<<'\n'<<admno<<'\t'<<name<<"\t\t\t\t\t"<<gender<<'\t'<<place;
+ }
+ friend long check(char*);
+ friend int checke(char*);
+ void PEedit();
+ void PEremove(char*);
+ void MEgetdata(char*);
+ void MEdisplay(char*);
+}pat;
+
+class doctor
+{
+ char docno[20];
+ char name[30];
+ char place[30];
+ char qualif[50];
+ char gender[10];
+ char dept[20];
+ int age;
+ char pass[20];
+ public:
+ void getdata()
+ {
+  cout<<"\nEnter ID: ";
+  gets(docno);
+  cout<<"\nEnter password: ";
+  gets(pass);
+  cout<<"\nEnter name: ";
+  gets(name);
+  cout<<"\nEnter department: ";
+  gets(dept);
+  cout<<"\nEnter Qualification: ";
+  gets(qualif);
+  cout<<"\nEnter place: ";
+  gets(place);
+  cout<<"\nEnter gender: ";
+  gets(gender);
+  cout<<"\nEnter doctor age: ";
+  cin>>age;
+ }
+ void display()                   //search doctor
+ {
+  cout<<"\n\t\t>>>>>> DOCTOR'S PERSONAL DETAILS <<<<<<\n";
+  cout<<"\nDoctor ID : "<<docno<<"\nName : "<<name<<"\nDepartment : "<<dept<<"\nQualification : "<<qualif<<"\nGender : "<<gender<<"\nplace : "<<place<<"\nAge : "<<age;
+ }
+ void viewall()                  //view all doctors
+ {
+  cout<<'\n'<<docno<<'\t'<<name<<"\t\t\t\t"<<dept<<'\t'<<qualif<<'\n';
+ }
+ char* getname()                 //accessor fuction
+ {
+  return name;
+ }
+ void edit();
+ void remove(char*);
+ friend int checkd(char*);
+ friend int password(char *,char *);
+ void passedit();
+}doc;
+
+class admin
+{
+ char apass[20];
+ public:
+ void newadmpass();
+ int admpass();
+}adm;
+
+void admin::newadmpass()
+{
+ cout<<"\n\n\n\n\n\n\n\n\n\n\n";
+ cout<<"\t\t\tCreate a NEW ADMIN password: ";
+ gets(apass);
+  fstream aio("admin",ios::in|ios::out);
+ aio.write((char*)&adm,sizeof(adm));
+ aio.close();
+}
+
+int admin::admpass()
+{
+ char dup[20];
+ fstream aio("admin",ios::in|ios::out);
+ int i=0;
+ cout<<"\n\n\n\n\n\n\n\n\n\n\n";
+ cout<<"\t\t\tEnter ADMIN password: ";
+ do
+ {
+  ch=getch();
+  if(ch==13)
+  break;
+  else
+  {
+   cout<<"*";
+   dup[i]=ch;
+   i++;
+  }
+ }
+ while(ch!=13);
+ dup[i]='\0';
+ aio.read((char*)&adm,sizeof(adm));
+ if(strcmp(dup,apass)==0)
+ {
+  clrscr();
+  cout<<"Security verifying.";
+  delay(400);
+  cout<<".";
+  delay(400);
+  cout<<".";
+  delay(400);
+  cout<<".";
+  delay(400);
+  cout<<".";
+  void grantmsg();
+  grantmsg();
+  textbackground(9);
+  clrscr();
+  textcolor(WHITE);
+  clrscr();
+  return 1;
+ }
+ else
+ {
+  void denymsg();
+  denymsg();
+  textbackground(9);
+  clrscr();
+  textcolor(WHITE);
+  clrscr();
+  return 0;
+ }
+}
+
+void doctor::passedit()                     //change doctor's password
+{
+ cout<<"\nEnter new password: ";
+ gets(pass);
+ cout<<"\n\npassword changed :)";
+}
+
+int password(char *id,char *passd)           //check doctor's password
+{
+ if(strcmp(doc.docno,id)==0)
+ {
+  if(strcmp(doc.pass,passd)==0)
+   return 1;
+  else
+   return 0;
+ }
+ else
+  return 0;
+}
+
+void doctor::remove(char *l)             //delete doctor
+{
+ clrscr();
+ char confirm;
+ int ret=0;
+ ifstream fio("doct",ios::in);
+ ofstream file("temp",ios::out);
+ while(!fio.eof())
+ {
+  fio.read((char*)&doc,sizeof(doc));
+  ret=checkd(l);
+  if(ret==1)
+  {
+   doc.display();
+   cout<<"\n\nAre you sure, you want to delete this record? (Y/N)...";
+   cin>>confirm;
+   if(confirm=='N'||confirm=='n')
+    file.write((char*)&doc,sizeof(doc));
+   else
+    cout<<"\npatient record deleted successfully !";
+  }
+  else
+   file.write((char*)&doc,sizeof(doc));
+ }
+ fio.close();
+ file.close();
+ remove("doct");
+ rename("temp","doct");
+}
+
+void doctor::edit()              //edit doctors's records
+{
+ int choice;
+ char ans;
+ do
+ {
+  cout<<"\n\t\t*****DOCTOR EDIT MENU*****\n";
+  cout<<"1.name\n2.place\n3.Age\n";
+  cout<<"\nEnter your choice: ";
+  cin>>choice;
+  switch(choice)
+  {
+   case 1:
+    cout<<"\nEnter new name: ";
+    gets(name);
+    break;
+   case 2:
+    cout<<"\nEnter new place: ";
+    gets(place);
+    break;
+   case 3:
+    cout<<"\nEnter your current age: ";
+    cin>>age;
+    break;
+   default:
+    cout<<"\nSorry.Invalid choice.";
+  }
+  cout<<"\n\nDo you wish to continue? (Y/N): ";
+  cin>>ans;
+  clrscr();
+ }
+ while(ans=='Y'||ans=='y');
+}
+
+void patient::PEedit()              //edit patient's records
+{
+ int choice;
+ char ans;
+ do
+ {
+  cout<<"\n\t\t*****PATIENT EDIT MENU*****\n";
+  cout<<"1.Place\n2.Name\n3.Age\n";
+  cout<<"\nEnter your choice: ";
+  cin>>choice;
+  switch(choice)
+  {
+   case 1:
+    cout<<"\nEnter your new place: ";
+    gets(place);
+    break;
+   case 2:
+    cout<<"\nEnter your new name: ";
+    gets(name);
+    break;
+   case 3:
+    cout<<"\nEnter your current age: ";
+    cin>>age;
+    break;
+   default:
+    cout<<"\nSorry.Invalid choice.";
+  }
+  cout<<"Do you wish to continue? (Y/N): ";
+  cin>>ans;
+  clrscr();
+ }
+ while(ans=='Y'||ans=='y');
+}
+
+void patient::PEremove(char *l)             //delete patient
+{
+ clrscr();
+ char confirm;
+ int ret=0;
+ ifstream fio("hos",ios::in);
+ ofstream file("temp",ios::out);
+ while(!fio.eof())
+ {
+  fio.read((char*)&pat,sizeof(pat));
+  ret=checke(l);
+  if(ret==1)
+  {
+   pat.PEdisplay();
+   cout<<"\n\nAre you sure, you want to delete this record? (Y/N)...";
+   cin>>confirm;
+   if(confirm=='N'||confirm=='n')
+    file.write((char*)&pat,sizeof(pat));
+   else
+    cout<<"\npatient record deleted successfully !";
+  }
+  else
+   file.write((char*)&pat,sizeof(pat));
+ }
+ fio.close();
+ file.close();
+ remove("hos");
+ rename("temp","hos");
+}
+
+
+void patient::MEgetdata(char *l)    //get patient's medical records
+{
+  cout<<"ENTER MEDICAL REPORT: \n";
+  ofstream fout(l,ios::app);
+  do
+  {
+   ch=getchar();
+   fout.put(ch);
+  }
+  while(ch!='\n');
+  fout.put('\n');
+  fout.close();
+}
+
+void patient::MEdisplay(char *l)   //display patient medical records
+{
+ clrscr();
+ cout<<"\n\t\t>>>>>> PREVIOUS MEDICAL HISTORY <<<<<<\n\n";
+ ifstream fin(l);
+ while(!fin.eof())
+ {
+  fin.get(ch);
+  cout<<ch;
+ }
+ fin.close();
+}
+
+long check(char *l)                 //check
+{
+ long loc;
+ ifstream fi("hos");
+ while(!fi.eof())
+ {
+  loc=fi.tellg();
+  fi.read((char*)&pat,sizeof(pat));
+  if(strcmp(pat.admno,l)==0)
+  return loc;
+ }
+ fi.close();
+ return 0;
+}
+
+int checke(char *l)               //check patient
+{
+ if(strcmp(pat.admno,l)==0)
+ return 1;
+ else
+ return 0;
+}
+
+int checkd(char *l)               //check doctor
+{
+ if(strcmp(doc.docno,l)==0)
+ return 1;
+ else
+ return 0;
+}
+
+void grantmsg()		    //access granted message
+{
+ textbackground(BLACK);
+ clrscr();
+ int x=0;
+ while(x<8)
+ {
+  if(x%2==0)
+  {
+   textcolor(GREEN);
+   clrscr();
+  }
+  else
+  {
+   textcolor(BLACK);
+   clrscr();
+  }
+  cout<<"\n\n\n\n\n\n\n\n\n\n\n";
+  cout<<"\t\t\t   ------------------\n";
+  cout<<"\t\t\t   | ACCESS GRANTED |\n";
+  cout<<"\t\t\t   ------------------\n";
+  x++;
+  delay(500);
+ }
+}
+
+void denymsg()             //access denied message
+{
+ textbackground(BLACK);
+ clrscr();
+ int x=0;
+ while(x<8)
+ {
+  if(x%2==0)
+  {
+   textcolor(RED);
+   clrscr();
+  }
+  else
+  {
+   textcolor(BLACK);
+   clrscr();
+  }
+  cout<<"\n\n\n\n\n\n\n\n\n\n\n";
+  cout<<"\t\t\t   ------------------\n";
+  cout<<"\t\t\t   |  ACCESS DENIED  |\n";
+  cout<<"\t\t\t   ------------------\n";
+  x++;
+  delay(500);
+ }
+}
+
+void border()                      //to print border
+{
+ for(int i=0;i<=77;i++)
+ cout<<(char)177;
+ for(i=1;i<25;i++)
+ {
+  gotoxy(1,i);
+  cout<<(char)177;
+  gotoxy(78,i);
+  cout<<(char)177;
+ }
+ cout<<endl;
+ for(i=0;i<=77;i++)
+ cout<<(char)177;
+ gotoxy(2,5);
+ for(i=0;i<=75;i++)
+ cout<<(char)176;
+ gotoxy(2,23);
+ for(i=0;i<=75;i++)
+ cout<<(char)176;
+ gotoxy(78,24);
+ cout<<(char)177<<"  ";
+}
+
+void wmsg()                     //welcome message
+{
+ textbackground(BLACK);
+ clrscr();
+ int i=0;
+ while(i<13)
+ {
+  textcolor(i);
+  clrscr();
+  cout<<"\n\n";
+  cout<<"  Y88b         / 888~~~ 888      e88~-_    ,88~-_        e    e      888~~~ \n";
+  cout<<"   Y88b       /  888    888     d888   -  d888   -      d8b  d8b     888    \n";
+  cout<<"    Y88b  e  /   888___ 888     8888      88888   |    d888bdY88b    888___ \n";
+  cout<<"     Y88bd8b/    888    888     8888      88888   |   / Y88Y Y888b   888    \n";
+  cout<<"      Y88Y8Y     888    888     Y888   /  Y888   /   /   YY   Y888b  888    \n";
+  cout<<"       Y  Y      888___ 888____  `88_-~    `88_-~   /          Y888b 888___ \n\n";
+  cout<<"                               TO                                           \n\n";
+  cout<<"                  888~-_        e      888b    | 888                          \n"; 
+  cout<<"                  888   -      d8b     |Y88b   | 888                          \n"; 
+  cout<<"                  888    |    /Y88b    | Y88b  | 888                          \n"; 
+  cout<<"                  888   /    /  Y88b   |  Y88b | 888                          \n"; 
+  cout<<"                  888_-~    /____Y88b  |   Y88b| 888                          \n"; 
+  cout<<"                  888 ~-_  /      Y88b |    Y888 888                          \n"; 
+  cout<<"    888   |   ,88~-_   ,d88~~| 888~-_   888 ~~~888~~~      e      888         \n";
+  cout<<"    888___|  d888   -  8888    888   -  888    888        d8b     888         \n";
+  cout<<"    888   | 88888    | `Y88b   888    | 888    888       /Y88b    888         \n";
+  cout<<"    888   | 88888    |  `Y88b, 888   /  888    888      /  Y88b   888         \n";
+  cout<<"    888   |  Y888   /     8888 888_-~   888    888     /____Y88b  888         \n";
+  cout<<"    888   |   `88_-~   |__88P' 888      888    888    /      Y88b 888____     \n";
+  delay(500);
+  i++;
+ }
+ textbackground(WHITE);
+ clrscr();
+ textcolor(RED);
+ clrscr();
+ cout<<"...........................+########################+..........................\n";
+ cout<<"...........................+########################+..........................\n";
+ cout<<"...........................+########################+..........................\n";
+ cout<<"...........................+########################+..........................\n";
+ cout<<"...........................+########################+..........................\n";
+ cout<<"...........................+########################+..........................\n";
+ cout<<"..+##########################################################################-.\n";
+ cout<<"..+##########################################################################-.\n";
+ cout<<"..+##########################################################################-.\n";
+ cout<<"..+##########################################################################-.\n";
+ cout<<"..+##########################################################################-.\n";
+ cout<<"..+##########################################################################-.\n";
+ cout<<"..+##########################################################################-.\n";
+ cout<<"..+##########################################################################-.\n";
+ cout<<"..+##########################################################################-.\n";
+ cout<<"..+##########################################################################-.\n";
+ cout<<"..+##########################################################################-.\n";
+ cout<<"..+##########################################################################-.\n";
+ cout<<"..-++++++++++++++++++++++++*########################*++++++++++++++++++++++++-.\n";
+ cout<<"...........................+########################+..........................\n";
+ cout<<"...........................+########################+..........................\n";
+ cout<<"...........................+########################+..........................\n";
+ cout<<"...........................+########################+..........................\n";
+ cout<<"...........................+########################+..........................\n";
+ cout<<"...........................+########################+...............LOADING....\n";
+ textcolor(RED);
+ delay(5000);
+}
+
+void main()                        //main function
+{
+ clrscr();
+ char ans;
+ int flag;
+ int choice;
+ char ano[20];
+ void wmsg();
+ void grantmsg();
+ void denymsg();
+ wmsg();
+ delay(0);
+ do
+ {
+  textbackground(0);
+  clrscr();
+  textcolor(12);
+  clrscr();
+  gotoxy(28,2);
+  cout<<"***** MAIN MENU *****\n";
+  border();
+  gotoxy(29,10);
+  cout<<"_________________";
+  gotoxy(29,11);
+  cout<<"1. Receptionist";
+  gotoxy(29,12);
+  cout<<"2. Doctor";
+  gotoxy(29,13);
+  cout<<"3. Admin";
+  gotoxy(29,14);
+  cout<<"4. exit";
+  gotoxy(29,15);
+  cout<<"_________________";
+  textcolor(6);
+  gotoxy(28,17);
+  clreol();
+  cout<<"Enter your choice(1-4): ";
+  cin>>choice;
+  clrscr();
+  switch(choice)
+  {
+   case 1:                               //RECEPTIONIST menu
+    do
+    {
+     textbackground(0);
+     clrscr();
+     textcolor(11);
+     clrscr();
+     gotoxy(27,2);
+     cout<<"***** RECEPTIONIST MENU *****\n";
+     border();
+     gotoxy(29,10);
+     cout<<"1. Add new account";
+     gotoxy(29,11);
+     cout<<"2. Edit account";
+     gotoxy(29,12);
+     cout<<"3. Search account";
+     gotoxy(29,13);
+     cout<<"4. display all accounts";
+     gotoxy(29,14);
+     cout<<"5. remove account";
+     gotoxy(29,15);
+     cout<<"6. Doctors availble";
+     gotoxy(29,16);
+     cout<<"7. Back to main menu";
+     gotoxy(29,17);
+     cout<<"8. Exit";
+     textcolor(6);
+     gotoxy(29,19);
+     clreol();
+     cout<<"Enter your choice(1-8): ";
+     cin>>choice;
+     switch(choice)
+     {
+      case 1:                            //create account
+       clrscr();
+       ofstream fo("hos",ios::app);
+       if(!fo.eof());
+       pat.PEgetdata();
+       fo.write((char*)&pat,sizeof(pat));
+       cout<<"\n1 Record inserted successfully :)";
+       fo.close();
+       break;
+      case 2:                            //edit account
+       clrscr();
+       int flag=0;
+       fstream fio("hos",ios::in|ios::out);
+       cout<<"Enter Patient ID: ";
+       gets(ano);
+       while(!fio.eof())
+       {
+	int loc=fio.tellg();
+	fio.read((char*)&pat,sizeof(pat));
+	int ret=checke(ano);
+	if(ret==1)
+	{
+	 flag=1;
+	 pat.PEedit();
+	 fio.seekg(loc);
+	 fio.write((char*)&pat,sizeof(pat));
+	 break;
+	}
+       }
+       if(flag==0)
+	cout<<"account does not exist\n";
+       fio.close();
+       break;
+      case 3:                            //display account
+       clrscr();
+       int ret=0;
+       cout<<"Enter patient ID:";
+       gets(ano);
+       ifstream fi("hos");
+       while(!fi.eof())
+       {
+	fi.read((char*)&pat,sizeof(pat));
+	ret=checke(ano);
+	if(ret==1)
+	{
+	 pat.PEdisplay();
+	 break;
+	}
+       }
+       fi.close();
+       if(ret==0)
+       cout<<"Account doesn't exist :(";
+       break;
+      case 4:                            //display all account
+       ifstream fin("hos");
+       clrscr();
+       cout<<"\n\t\t>>>>> ALL PATIENTS <<<<<\n";
+       cout<<"\nAdm.No\tNAME\t\t\t\t\t\tSEX\tplace\n";
+       cout<<"----------------------------------------------------------------\n";
+       while(!fin.eof())
+       {
+	fin.read((char*)&pat,sizeof(pat));
+	if(!fin.eof())
+	 pat.PEviewall();
+       }
+       fin.close();
+       break;
+      case 5:                            //remove patient
+       cout<<"Enter patient ID: ";
+       gets(ano);
+       pat.PEremove(ano);
+       break;
+      case 6:                            //doctors available
+       clrscr();
+       ifstream fii("doct");
+       cout<<"\n\t\t>>>>> DOCTORS AVAILABLE <<<<<\n";
+       cout<<"\nDoc ID\tNAME\t\t\tDEPT\tQUALIFICATION\n";
+       cout<<"----------------------------------------------\n";
+	while(!fii.eof())
+	{
+	 fii.read((char*)&doc,sizeof(doc));
+	 if(!fii.eof())
+	  doc.viewall();
+	}
+       fii.close();
+       break;
+      case 7:                            //back to main menu
+       break;
+      case 8:                            //exit
+       cout<<"press [ENTER] to exit\n";
+       getch();
+       exit(0);
+      default:
+       cout<<"\nInvalid choice!";
+     }
+     cout<<"\n\nDo you wish to continue RECEPTIONIST menu? (Y/N): ";
+     cin>>ans;
+     clrscr();
+    }
+    while(ans=='y'||ans=='Y');
+    break;
+
+   case 2:                            //DOCTOR menu
+    char dpass[20];
+    int dflag=0;
+    int dret;
+    cout<<"\n\n\n\n\n\n\n\n\n\n\n";
+    cout<<"\t\t\tEnter your doctor ID: ";
+    gets(ano);
+    cout<<"\t\t\tEnter your password: ";
+    gets(dpass);
+    clrscr();
+    ifstream f("doct");
+    while(!f.eof())
+    {
+     f.read((char*)&doc,sizeof(doc));
+     dret=password(ano,dpass);
+     if(dret==1)
+     {
+      grantmsg();
+      textcolor(WHITE);
+      clrscr();
+      cout<<"\n\n\n\n\n\n\n\n\n\n\n";
+      cout<<"\t\t\tWelcome back Dr. "<<doc.getname();
+      delay(2500);
+      do
+      {
+       textbackground(0);
+       clrscr();
+       textcolor(10);
+       clrscr();
+       dflag=1;
+       gotoxy(27,2);
+       cout<<"***** DOCTOR MENU *****\n";
+       border();
+       gotoxy(26,11);
+       cout<<"1. Display patient's personal record";
+       gotoxy(26,12);
+       cout<<"2. Add medical report";
+       gotoxy(26,13);
+       cout<<"3. Display Patient's medical report ";
+       gotoxy(26,14);
+       cout<<"4. Back to MAIN menu";
+       gotoxy(26,15);
+       cout<<"5. Exit";
+       textcolor(6);
+       gotoxy(29,17);
+       clreol();
+       cout<<"Enter your choice(1-5): ";
+       cin>>choice;
+       switch(choice)
+       {
+	case 1:                            //patients personal record
+	 clrscr();
+	 int ret=0;
+	 cout<<"Enter patient ID:";
+	 gets(ano);
+	 ifstream fi("hos");
+	 while(!fi.eof())
+	 {
+	  fi.read((char*)&pat,sizeof(pat));
+	  ret=checke(ano);
+	  if(ret==1)
+	  {
+	   pat.PEdisplay();
+	   break;
+	  }
+	 }
+	 fi.close();
+	 if(ret==0)
+	  cout<<"Account doesn't exist :(";
+	 break;
+	case 2:                 //add patients's medical record
+	 clrscr();
+	 cout<<"Enter patient's account number: ";
+	 gets(ano);
+	 clrscr();
+	 ifstream fe("hos");
+	 while(!fe.eof())
+	 {
+	  fe.read((char*)&pat,sizeof(pat));
+	  ret=checke(ano);
+	  if(ret==1)
+	  {
+	   flag=1;
+	   pat.MEgetdata(ano);
+	   break;
+	  }
+	 }
+	 if(flag==0)
+	  cout<<"Account doesn't exist :(\n";
+	 fe.close();
+	 break;
+	case 3:                //dislay patients's medical record
+	 clrscr();
+	 flag=0;
+	 ifstream fb("hos");
+	 cout<<"\nEnter your account number: ";
+	 gets(ano);
+	 while(!fb.eof())
+	 {
+	  fb.read((char*)&pat,sizeof(pat));
+	  long cret=checke(ano);
+	  if(cret==1)
+	  {
+	   flag=1;
+	   pat.MEdisplay(ano);
+	   break;
+	  }
+	 }
+	 if(flag==0)
+	  cout<<"Account doesn't exist :(\n";
+	 fb.close();
+	 break;
+	case 4:
+	 break;
+	case 5:
+	 clrscr();
+	 cout<<"press [ENTER] to exit";
+	 getch();
+	 exit(0);
+	default:
+	 cout<<"\nInvalid choice !!!\n";
+       }
+       cout<<"\n\nDo you wish to continue DOCTOR menu? (Y/N): ";
+       cin>>ans;
+       clrscr();
+      }
+      while(ans=='Y'||ans=='y');
+     }
+    }
+    if(dflag==0)
+    {
+      denymsg();
+      cout<<"\n\n\nIncorrect username or password !!!";
+    }
+    textbackground(9);
+    clrscr();
+    textcolor(WHITE);
+    clrscr();
+    f.close();
+    break;
+
+   case 3:			 //ADMIN menu
+    int aret=0;
+    fstream aio("admin",ios::in|ios::out);
+    aio.seekg(0,ios::beg);
+    int begloc=aio.tellg();
+    aio.seekg(0,ios::end);
+    int endloc=aio.tellg();
+    if(begloc==endloc) //if password not set up
+    {
+     adm.newadmpass();
+     aio.close();
+     aret=1;
+    }
+    else    //if password already set up
+    {
+     aret=adm.admpass();
+     aio.close();
+    }
+    if(aret==1)
+    {
+     do
+     {
+      textbackground(0);
+      clrscr();
+      textcolor(11);
+      clrscr();
+      gotoxy(27,2);
+      cout<<"***** ADMIN MENU *****\n";
+      border();
+      gotoxy(29,10);
+      cout<<"1. Add Doctor";
+      gotoxy(29,11);
+      cout<<"2. Edit Doctor";
+      gotoxy(29,12);
+      cout<<"3. Change doctor password";
+      gotoxy(29,13);
+      cout<<"4. Search Doctor";
+      gotoxy(29,14);
+      cout<<"5. View All Doctors";
+      gotoxy(29,15);
+      cout<<"6. Remove Doctor";
+      gotoxy(29,16);
+      cout<<"7. Back to main menu";
+      gotoxy(29,17);
+      cout<<"8. Exit";
+      textcolor(6);
+      gotoxy(29,19);
+      clreol();
+      cout<<"Enter your choice(1-8): ";
+      cin>>(choice);
+      clrscr();
+      switch(choice)
+      {
+       case 1:                   //add doctor
+	clrscr();
+	ofstream fo("doct",ios::app);
+	doc.getdata();
+	fo.write((char*)&doc,sizeof(doc));
+	fo.close();
+	cout<<"\n\nRecord inserted successfully :) ";
+	break;
+       case 2:                   //edit  doctor
+	clrscr();
+	int flag=0;
+	fstream fio("doct",ios::in|ios::out);
+	cout<<"Enter Doctor id: ";
+	gets(ano);
+	while(!fio.eof())
+	{
+	 int loc=fio.tellg();
+	 fio.read((char*)&doc,sizeof(doc));
+	 int ret=checkd(ano);
+	 if(ret==1)
+	 {
+	  flag=1;
+	  doc.edit();
+	  fio.seekg(loc);
+	  fio.write((char*)&doc,sizeof(doc));
+	  break;
+	 }
+	}
+	if(flag==0)
+	cout<<"Account does not exist :(\n";
+	fio.close();
+	break;
+       case 3:                  //change doctor's password
+	fstream pfio("doct",ios::in|ios::out);
+	cout<<"Enter doctor ID: ";
+	gets(ano);
+	int pflag=0;
+	while(!pfio.eof())
+	{
+	 int loc=pfio.tellg();
+	 pfio.read((char*)&doc,sizeof(doc));
+	 int ret=checkd(ano);
+	 if(ret==1)
+	 {
+	  pflag=1;
+	  doc.passedit();
+	  pfio.seekg(loc);
+	  pfio.write((char*)&doc,sizeof(doc));
+	  break;
+	 }
+	}
+	if(pflag==0)
+	 cout<<"Account does not exist :(\n";
+	pfio.close();
+	break;
+       case 4:                  //search doctor
+	int ret=0;
+	cout<<"Enter doctor ID: ";
+	gets(ano);
+	ifstream fi("doct");
+	while(!fi.eof())
+	{
+	 fi.read((char*)&doc,sizeof(doc));
+	 ret=checkd(ano);
+	 if(ret==1)
+	 {
+	  doc.display();
+	  break;
+	 }
+	}
+	fi.close();
+	if(ret==0)
+	cout<<"Account does not exist :(";
+	break;
+       case 5:                  //view all
+	cout<<"\n\t\t>>>>> DOCTORS AVAILABLE <<<<<\n";
+	cout<<"\nDoc ID\tNAME\t\t\t\t\tDEPT\tQUALIFICATION\n";
+	cout<<"---------------------------------------------------------\n";
+	ifstream fin("doct");
+	while(!fin.eof())
+	{
+	 fin.read((char*)&doc,sizeof(doc));
+	 if(!fin.eof())
+	  doc.viewall();
+	}
+	fin.close();
+	break;
+       case 6:                     //remove account
+	cout<<"Enter doctor ID: ";
+	gets(ano);
+	doc.remove(ano);
+	break;
+       case 7:                     //back to main menu
+	break;
+       case 8:                     //exit
+	cout<<"Press [ENTER] to exit\n";
+	getch();
+	exit(0);
+       default:
+	cout<<"\n\nInvalid choice !!!";
+      }
+      cout<<"\n\nDo you wish to continue ADMIN menu? (Y/N): ";
+      cin>>ans;
+      clrscr();
+     }
+     while(ans=='y'||ans=='Y');
+    }
+    break;
+
+   case 4:                      //exit from program
+    cout<<"Press [ENTER] to exit\n";
+    getch();
+    exit(0);
+
+   default:
+    cout<<"\n\n Invalid choice !!!\n";
+  }
+  cout<<"\n\nDo you wish to continue MAIN menu? (Y/N): ";
+  cin>>ans;
+  cout<<"\n\npress ENTER to exit";
+ }
+ while(ans=='y'||ans=='Y');
+ getch();
+}
